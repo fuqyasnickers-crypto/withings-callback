@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Withings connect</title>
+</head>
+<body style="font:18px system-ui,sans-serif;margin:2em;max-width:36em">
+<p id="msg">Connecting Withings…</p>
+<script>
+  // Withings sends you here after "Allow" with ?code=…&state=… — pass them straight on to the
+  // sleep journal's Google Apps Script (the code is only valid for 30 seconds). No data or keys live here.
+  var target = 'https://script.google.com/macros/s/AKfycbwkzdwDjZ1wsfnrYc7XKAav6AX5EnTx4HenlEK8ichOafUgfqKj5cwyZjlg3IG9weLB/exec';
+  if (/[?&]code=/.test(location.search)) {
+    location.replace(target + location.search);
+  } else {
+    document.getElementById('msg').textContent = 'Withings sign-in return page for a personal sleep journal. Nothing to do here.';
+  }
+</script>
+</body>
+</html>
