@@ -4,18 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
 <title>Withings connect</title>
 </head>
 <body style="font:18px system-ui,sans-serif;margin:2em;max-width:36em">
 <p id="msg">Connecting Withings…</p>
 <script>
-  // Withings sends you here after "Allow" with ?code=…&state=… — pass them straight on to the
+  // Withings sends you here after "Allow" with ?code=…&state=…. This page hands them straight to the
   // sleep journal's Google Apps Script (the code is only valid for 30 seconds). No data or keys live here.
+  // fetch() sends no Google cookies, so it works even when the browser is signed in to several Google accounts.
   var target = 'https://script.google.com/macros/s/AKfycbwkzdwDjZ1wsfnrYc7XKAav6AX5EnTx4HenlEK8ichOafUgfqKj5cwyZjlg3IG9weLB/exec';
+  var msg = document.getElementById('msg');
+  var say = function (t) { msg.textContent = t; };
+  var getJson = function (url) {
+    return fetch(url, { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.json(); });
+  };
   if (/[?&]code=/.test(location.search)) {
-    location.replace(target + location.search);
+    say('Connecting Withings and importing your nights… this can take a few minutes. Keep this tab open.');
+    getJson(target + location.search + '&fmt=json')
+      .then(function (j) { say(j.message || (j.connected ? '✅ Withings connected.' : '❌ Withings connection failed.')); })
+      .catch(function () {
+        say('No answer from the journal yet. Checking…');
+        return getJson(target).then(function (j) {
+          say(j.withings ? '✅ Withings is connected. Check the Health folder in Obsidian.'
+                         : '❌ Withings is not connected. Run connectWithings again and open the new link.');
+        });
+      })
+      .catch(function () { say('❌ Could not reach the journal. Run connectWithings again and open the new link.'); });
   } else {
-    document.getElementById('msg').textContent = 'Withings sign-in return page for a personal sleep journal. Nothing to do here.';
+    say('Withings sign-in return page for a personal sleep journal. Nothing to do here.');
   }
 </script>
 </body>
